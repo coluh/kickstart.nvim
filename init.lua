@@ -98,7 +98,6 @@ vim.g.have_nerd_font = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
-
 -- Make line numbers default
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -172,15 +171,15 @@ vim.o.confirm = false
 
 -- Custom
 vim.keymap.set('n', '<leader>w', '<cmd>w<CR>')
-vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", opts)
-vim.keymap.set("n", "<leader>a", "<cmd>LspClangdSwitchSourceHeader<CR>", opts)
+vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', opts)
+vim.keymap.set('n', '<leader>a', '<cmd>LspClangdSwitchSourceHeader<CR>', opts)
 
-vim.keymap.set("n", "<leader>s", "<cmd>sp<CR>", opts)
-vim.keymap.set("n", "<leader>v", "<cmd>vsp<CR>", opts)
+vim.keymap.set('n', '<leader>s', '<cmd>sp<CR>', opts)
+vim.keymap.set('n', '<leader>v', '<cmd>vsp<CR>', opts)
 
-vim.keymap.set("n", "<leader>8", "*", opts)
-vim.keymap.set("n", "<leader>]", "<C-]>", opts)
-vim.keymap.set("n", "<leader>;", "<C-]>", opts)
+vim.keymap.set('n', '<leader>8', '*', opts)
+vim.keymap.set('n', '<leader>]', '<C-]>', opts)
+vim.keymap.set('n', '<leader>;', '<C-]>', opts)
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
@@ -731,7 +730,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
-	'clang-format',
+        'clang-format',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -784,7 +783,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-	c = { 'clang-format' },
+        c = { 'clang-format' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -975,12 +974,12 @@ require('lazy').setup({
       incremental_selection = {
         enable = true,
         keymaps = {
-	  init_selection = false,
-	  node_incremental = "<Enter>",
-	  scope_incremental = "<Enter>",
-	  node_decremental = "<Backspace>",
-	}
-      }
+          init_selection = false,
+          node_incremental = '<Enter>',
+          scope_incremental = '<Enter>',
+          node_decremental = '<Backspace>',
+        },
+      },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
