@@ -93,6 +93,8 @@ vim.g.maplocalleader = '\\'
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+vim.g.disable_autoformat = true
+
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
@@ -184,6 +186,7 @@ vim.keymap.set('n', '<leader>;', '<C-]>', opts)
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Backspace>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<Space>', '<nop>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>d', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -772,7 +775,7 @@ require('lazy').setup({
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
+        if vim.g.disable_autoformat or disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
           return {
