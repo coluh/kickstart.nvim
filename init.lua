@@ -100,6 +100,8 @@ vim.g.disable_autoformat = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+vim.o.wrap = false
+
 -- Make line numbers default
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -124,7 +126,7 @@ end)
 vim.o.breakindent = true
 
 -- Save undo history
-vim.o.undofile = true
+vim.o.undofile = false
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.o.ignorecase = true
@@ -172,24 +174,28 @@ vim.o.confirm = false
 --  See `:help vim.keymap.set()`
 
 -- Custom
+vim.keymap.set('n', '<Space>', '<nop>')
+
 vim.keymap.set('n', '<leader>w', '<cmd>w<CR>')
-vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', opts)
-vim.keymap.set('n', '<leader>a', '<cmd>LspClangdSwitchSourceHeader<CR>', opts)
+vim.keymap.set('n', '<leader>q', '<cmd>q<CR>')
+vim.keymap.set('n', '<leader>a', '<cmd>LspClangdSwitchSourceHeader<CR>')
 
-vim.keymap.set('n', '<leader>s', '<cmd>sp<CR>', opts)
-vim.keymap.set('n', '<leader>v', '<cmd>vsp<CR>', opts)
+vim.keymap.set('n', '<leader>s', '<cmd>sp<CR>')
+vim.keymap.set('n', '<leader>v', '<cmd>vsp<CR>')
 
-vim.keymap.set('n', '<leader>8', '*', opts)
-vim.keymap.set('n', '<leader>]', '<C-]>', opts)
-vim.keymap.set('n', '<leader>;', '<C-]>', opts)
+vim.keymap.set('n', '<leader>8', '*')
+vim.keymap.set('n', '<leader>]', '<C-]>')
+vim.keymap.set('n', '<leader>;', '<C-]>')
+
+vim.keymap.set('v', '<leader>c', 'gc', { remap = true, desc = 'Comment object' })
+vim.keymap.set('n', '<leader>cc', 'gcc', { remap = true, desc = 'Comment Line' })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Backspace>', '<cmd>nohlsearch<CR>')
-vim.keymap.set('n', '<Space>', '<nop>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>d', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>d', vim.diagnostic.setloclist, { desc = 'Open [D]iagnostic quickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -321,7 +327,7 @@ require('lazy').setup({
     opts = {
       -- delay between pressing a key and opening which-key (milliseconds)
       -- this setting is independent of vim.o.timeoutlen
-      delay = 0,
+      delay = 500,
       icons = {
         -- set icon mappings to true if you have a Nerd Font
         mappings = vim.g.have_nerd_font,
@@ -608,6 +614,7 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+          --[[
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -630,6 +637,7 @@ require('lazy').setup({
               end,
             })
           end
+          --]]
 
           -- The following code creates a keymap to toggle inlay hints in your
           -- code, if the language server you are using supports them
@@ -672,12 +680,6 @@ require('lazy').setup({
         },
       }
 
-      -- LSP servers and clients are able to communicate to each other what features they support.
-      --  By default, Neovim doesn't support everything that is in the LSP specification.
-      --  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
-      --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
-      local capabilities = require('blink.cmp').get_lsp_capabilities()
-
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -690,7 +692,19 @@ require('lazy').setup({
       local servers = {
         clangd = {},
         gopls = {},
-        pyright = {},
+        -- pyright = {},
+        pylsp = {
+          settings = {
+            pylsp = {
+              plugins = {
+                pycodestyle = {
+                  ignore = { 'E203' },
+                  maxLineLength = 98,
+                },
+              },
+            },
+          },
+        },
         rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -716,6 +730,9 @@ require('lazy').setup({
           },
         },
       }
+      require('mason-lspconfig').setup {
+        automatic_enable = vim.tbl_keys(servers or {}),
+      }
 
       -- Ensure the servers and tools above are installed
       --
@@ -734,23 +751,14 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'clang-format',
+        'isort',
+        'black',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      require('mason-lspconfig').setup {
-        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = false,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
+      for server_name, config in pairs(servers) do
+        vim.lsp.config(server_name, config)
+      end
     end,
   },
 
@@ -788,7 +796,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         c = { 'clang-format' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -854,7 +862,10 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'enter',
+        preset = 'super-tab',
+
+        -- ['<Tab>'] = { 'select_prev', 'fallback' },
+        ['<S-Tab>'] = { 'select_next', 'fallback' },
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -913,7 +924,8 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'elflord'
+      -- vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
 

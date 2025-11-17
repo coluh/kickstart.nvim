@@ -3,5 +3,7 @@
 --
 -- See the kickstart.nvim README for more information
 return {
-	{ "justinmk/vim-dirvish" },
+  { 'justinmk/vim-dirvish' },
+  -- { 'ray-x/lsp_signature.nvim', event = 'InsertEnter', opts = {} },
+  -- { 'python-lsp/python-lsp-black' },
 }
